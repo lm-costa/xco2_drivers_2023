@@ -238,6 +238,27 @@ xco2 |>
 ggplot2::ggsave('img/xco2_.png',units="in", width=8, height=4,
                 dpi=1000)
 
+
+mod <- xco2 |> 
+  dplyr::filter(year>2016 & year < 2022) |> 
+  dplyr::mutate(
+    date= lubridate::as_date(stringr::str_c(
+      year,month,'1',sep = '-'
+    ))) |> 
+  lm(formula=xco2_est ~date)
+
+
+dfn <- broom::augment(mod)
+
+ggplot2::ggplot(dfn, ggplot2::aes(x = .fitted, y = .resid)) + 
+  ggplot2::geom_point()+
+  ggplot2::geom_smooth(method = 'lm')+
+  ggplot2::theme_bw()+
+  ggplot2::ggtitle(expression('XCO'[2][R]~' vs date'))
+
+ggplot2::ggsave('img/xco2__residual.png',units="in", width=5, height=4,
+                dpi=1000)
+
 sif |> 
   dplyr::filter(year>2014 & year < 2022) |> 
   dplyr::mutate(
@@ -336,12 +357,37 @@ ggplot2::ggsave('img/prec.png',units="in", width=5, height=4,
 
 # Linear regressions
 
+mod <- tab |>
+  lm(formula = XCO2r~SIF_757)
+
+dfn <- broom::augment(mod)
+
+ggplot2::ggplot(dfn, ggplot2::aes(x = .fitted, y = .resid)) + 
+  ggplot2::geom_point()+
+  ggplot2::geom_smooth(method = 'lm')+
+  ggplot2::theme_bw()+
+  ggplot2::ggtitle(expression('XCO'[2][R]~' vs SIF'))
+
+ggplot2::ggsave('img/xco2_sif_residual.png',units="in", width=5, height=4,
+                dpi=1000)
+
+pvalue <- summary(mod)$coefficients[2,4]
+
 tab |> 
   ggplot2::ggplot(ggplot2::aes(x=SIF_757,y=XCO2r))+
   ggplot2::geom_point()+
   ggplot2::geom_smooth(method = 'lm')+
+  ggplot2::annotate('text', 
+                    y=388.5,
+                    x=0.195, 
+                    label=paste0('p-value = ',signif(pvalue,3))
+  )+
   ggpubr::stat_regline_equation(ggplot2::aes(
-    label =  paste(..eq.label.., ..rr.label.., sep = "*plain(\",\")~~"))) +
+    label =  paste(ggplot2::after_stat(eq.label), 
+                   ggplot2::after_stat(rr.label),
+                   sep = "*plain(\",\")~~")),
+    label.y=389
+    ) +
   ggplot2::theme_bw()+
   ggplot2::theme(
     axis.text = ggplot2::element_text(color='black'),
@@ -357,16 +403,38 @@ tab |>
 ggplot2::ggsave('img/xco2_sif.png',units="in", width=5, height=4,
                 dpi=1000)
 
+mod <- tab |>
+  lm(formula = XCO2r~GPP)
+
+dfn <- broom::augment(mod)
+
+ggplot2::ggplot(dfn, ggplot2::aes(x = .fitted, y = .resid)) + 
+  ggplot2::geom_point()+
+  ggplot2::geom_smooth(method = 'lm')+
+  ggplot2::theme_bw()+
+  ggplot2::ggtitle(expression('XCO'[2][R]~' vs GPP'))
+
+ggplot2::ggsave('img/xco2_gpp_residual.png',units="in", width=5, height=4,
+                dpi=1000)
+
+pvalue <- summary(mod)$coefficients[2,4]
+
 tab |> 
   ggplot2::ggplot(ggplot2::aes(x=GPP,y=XCO2r))+
   ggplot2::geom_point()+
   ggplot2::geom_smooth(method = 'lm')+
   ggpubr::stat_regline_equation(ggplot2::aes(
-    label =  paste(..eq.label.., ..rr.label.., sep = "*plain(\",\")~~"))) +
+    label =  paste(..eq.label.., ..rr.label.., sep = "*plain(\",\")~~")),
+    label.y = 389) +
   ggplot2::theme_bw()+
   ggplot2::theme(
     axis.text = ggplot2::element_text(color='black'),
     axis.ticks = ggplot2::element_line(color='black')
+  )+
+  ggplot2::annotate('text', 
+                    y=388.5,
+                    x=6.5, 
+                    label=paste0('p-value = ',signif(pvalue,3))
   )+
   ggplot2::xlab(expression('GPP ( g C m'^-2~'month'^-1~')'))+
   ggplot2::ylab(expression(
@@ -376,12 +444,29 @@ tab |>
 ggplot2::ggsave('img/xco2_gpp.png',units="in", width=5, height=4,
                 dpi=1000)
 
+
+mod <- tab |>
+  lm(formula = GPP~SIF_757)
+
+dfn <- broom::augment(mod)
+
+ggplot2::ggplot(dfn, ggplot2::aes(x = .fitted, y = .resid)) + 
+  ggplot2::geom_point()+
+  ggplot2::geom_smooth(method = 'lm')+
+  ggplot2::theme_bw()+
+  ggplot2::ggtitle(expression('GPP vs SIF'))
+
+ggplot2::ggsave('img/sif_gpp_residual.png',units="in", width=5, height=4,
+                dpi=1000)
+pvalue <- summary(mod)$coefficients[2,4]
+
 tab |> 
   ggplot2::ggplot(ggplot2::aes(x=SIF_757,y=GPP))+
   ggplot2::geom_point()+
   ggplot2::geom_smooth(method = 'lm')+
   ggpubr::stat_regline_equation(ggplot2::aes(
-    label =  paste(..eq.label.., ..rr.label.., sep = "*plain(\",\")~~"))) +
+    label =  paste(..eq.label.., ..rr.label.., sep = "*plain(\",\")~~")),
+    label.y = 15.5) +
   ggplot2::theme(
     axis.text = ggplot2::element_text(color='black')
   )+
@@ -390,6 +475,11 @@ tab |>
     axis.text = ggplot2::element_text(color='black'),
     axis.ticks = ggplot2::element_line(color='black')
   )+
+  ggplot2::annotate('text', 
+                    y=14.5,
+                    x=0.195, 
+                    label=paste0('p-value = ',signif(pvalue,3))
+  )+
   ggplot2::ylab(expression('GPP ( g C m'^-2~'month'^-1~')'))+
   ggplot2::xlab(expression(
     'SIF 757nm (Wm'^-2~'sr'^-1~mu~'m'^-1~')'
@@ -397,6 +487,22 @@ tab |>
 
 ggplot2::ggsave('img/gpp_sif.png',units="in", width=5, height=4,
                 dpi=1000)
+
+mod <- tab |>
+  lm(formula = SIF_757~Prec)
+
+dfn <- broom::augment(mod)
+
+ggplot2::ggplot(dfn, ggplot2::aes(x = .fitted, y = .resid)) + 
+  ggplot2::geom_point()+
+  ggplot2::geom_smooth(method = 'lm')+
+  ggplot2::theme_bw()+
+  ggplot2::ggtitle(expression('SIF vs Prec'))
+
+ggplot2::ggsave('img/sif_prec_residual.png',units="in", width=5, height=4,
+                dpi=1000)
+
+pvalue <- summary(mod)$coefficients[2,4]
 
 tab |> 
   ggplot2::ggplot(ggplot2::aes(y=SIF_757,x=Prec))+
@@ -409,6 +515,11 @@ tab |>
   ggplot2::theme(
     axis.text = ggplot2::element_text(color='black'),
     axis.ticks = ggplot2::element_line(color='black')
+  )+
+  ggplot2::annotate('text', 
+                    y=0.45,
+                    x=45, 
+                    label=paste0('p-value = ',signif(pvalue,3))
   )+
   ggplot2::xlab(expression('Prec (mm month'^-1~')'))+
   ggplot2::ylab(expression(
@@ -494,15 +605,100 @@ xco2_farming <- xco2_farming |>
     month=lubridate::month(date),
     year=lubridate::year(date)
   )
+
 xco2_lu <- rbind(xco2_farming,xco2_forest)
+
+pv_farming <- summary(lm(XCO2reg~date,
+                 data= xco2_lu |> 
+                   dplyr::group_by(year,month,lu) |> 
+                   dplyr::summarise(
+                     XCO2reg = mean(xco2_reg),
+                     regsd =sd(xco2_reg),
+                     XCO2obs= mean(xco2),
+                     obssd=sd(xco2)
+                   ) |> 
+                   dplyr::mutate(date=lubridate::make_date(year,month,'1')) |> 
+                   dplyr::filter(lu=='Farming',
+                                 year>2016) 
+                 ))$coefficients[2,4]
+
+mod <- lm(XCO2reg~date,
+          data= xco2_lu |>
+            dplyr::group_by(year,month,lu) |>
+            dplyr::summarise(
+              XCO2reg = mean(xco2_reg),
+              regsd =sd(xco2_reg),
+              XCO2obs= mean(xco2),
+              obssd=sd(xco2)
+            ) |>
+            dplyr::mutate(date=lubridate::make_date(year,month,'1')) |>
+            dplyr::filter(lu=='Farming',
+                          year>2016)
+)
+
+dfn <- broom::augment(mod)
+
+ggplot2::ggplot(dfn, ggplot2::aes(x = .fitted, y = .resid)) + 
+  ggplot2::geom_point()+
+  ggplot2::geom_smooth(method = 'lm')+
+  ggplot2::theme_bw()+
+  ggplot2::ggtitle(expression('XCO'[2][R]~'Farming vs date'))
+
+ggplot2::ggsave('img/xco2farming_residual.png',units="in", width=5, height=4,
+                dpi=1000)
+
+pv_forest <- summary(lm(XCO2reg~date,
+                        data= xco2_lu |>
+                          dplyr::group_by(year,month,lu) |>
+                          dplyr::summarise(
+                            XCO2reg = mean(xco2_reg),
+                            regsd =sd(xco2_reg),
+                            XCO2obs= mean(xco2),
+                            obssd=sd(xco2)
+                          ) |>
+                          dplyr::mutate(date=lubridate::make_date(year,month,'1')) |>
+                          dplyr::filter(lu=='Forest',
+                                        year>2016)
+                        ))$coefficients[2,4]
+mod <- lm(XCO2reg~date,
+          data= xco2_lu |>
+            dplyr::group_by(year,month,lu) |>
+            dplyr::summarise(
+              XCO2reg = mean(xco2_reg),
+              regsd =sd(xco2_reg),
+              XCO2obs= mean(xco2),
+              obssd=sd(xco2)
+            ) |>
+            dplyr::mutate(date=lubridate::make_date(year,month,'1')) |>
+            dplyr::filter(lu=='Forest',
+                          year>2016)
+          )
+
+dfn <- broom::augment(mod)
+
+ggplot2::ggplot(dfn, ggplot2::aes(x = .fitted, y = .resid)) + 
+  ggplot2::geom_point()+
+  ggplot2::geom_smooth(method = 'lm')+
+  ggplot2::theme_bw()+
+  ggplot2::ggtitle(expression('XCO'[2][R]~'Forest vs date'))
+
+ggplot2::ggsave('img/xco2forest_residual.png',units="in", width=5, height=4,
+                dpi=1000)
 
 xco2_lu |> 
   dplyr::group_by(year,month,lu) |> 
+  dplyr::mutate(
+    pvalue_ = dplyr::case_when(
+      lu == 'Forest'~pv_forest,
+      lu=='Farming'~pv_farming
+    )
+  ) |> 
   dplyr::summarise(
     XCO2reg = mean(xco2_reg),
     regsd =sd(xco2_reg),
     XCO2obs= mean(xco2),
-    obssd=sd(xco2)
+    obssd=sd(xco2),
+    pvalue_=mean(pvalue_)
   ) |> 
   dplyr::mutate(date=lubridate::make_date(year,month,'1'),
                 LU = lu) |>
@@ -513,11 +709,19 @@ xco2_lu |>
   ggplot2::geom_line()+
   ggplot2::geom_smooth(data=xco2_lu |>
                          dplyr::group_by(year,month,lu) |> 
+                         dplyr::mutate(
+                           pvalue_ = dplyr::case_when(
+                             lu == 'Forest'~pv_forest,
+                             lu=='Farming'~pv_farming
+                           )
+                         ) |> 
                          dplyr::summarise(
                            XCO2reg = mean(xco2_reg),
                            regsd =sd(xco2_reg),
                            XCO2obs= mean(xco2),
-                           obssd=sd(xco2)) |> 
+                           obssd=sd(xco2),
+                           pvalue_=mean(pvalue_)
+                         ) |>
                          dplyr::mutate(date=lubridate::make_date(year,month,'1'),
                                        LU = lu) |> 
                          dplyr::filter(year>2016, year < 2022),
@@ -527,21 +731,33 @@ xco2_lu |>
   )+
   ggpubr::stat_regline_equation(data=  xco2_lu |>
                                   dplyr::group_by(year,month,lu) |> 
+                                  dplyr::mutate(
+                                    pvalue_ = dplyr::case_when(
+                                      lu == 'Forest'~pv_forest,
+                                      lu=='Farming'~pv_farming
+                                    )
+                                  ) |> 
                                   dplyr::summarise(
                                     XCO2reg = mean(xco2_reg),
                                     regsd =sd(xco2_reg),
                                     XCO2obs= mean(xco2),
-                                    obssd=sd(xco2)) |> 
+                                    obssd=sd(xco2),
+                                    pvalue_=mean(pvalue_)
+                                  ) |>
                                   dplyr::mutate(date=lubridate::make_date(year,month,'1'),
                                                 LU = lu) |> 
                                   dplyr::filter(year>2016, year < 2022),
                                 ggplot2::aes(y=XCO2reg,col=LU,
                                              label =  paste(..eq.label.., 
-                                                            ..rr.label.., sep = "*plain(\",\")~~"))
+                                                            ..rr.label..,
+                                                            c(signif(pv_farming,3),
+                                                              signif(pv_forest,3)), 
+                                                            sep = "*plain(\",\")~~"))
   ) +
   ggplot2::theme_bw()+
   ggplot2::ylab('XCO'[2][R]~' (ppm)')+
   ggplot2::xlab('')
+
 ggplot2::ggsave('img/xco2_lu.png',units="in", width=7, height=4,
                 dpi=1000)
 
@@ -620,6 +836,25 @@ co2e |>
 
 ggplot2::ggsave('img/co2_emi_set.png',units="in", width=5, height=4,
                 dpi=1000)
+
+
+
+mod <- lm(Total~year,data=co2e |> 
+            dplyr::mutate(year=ano) |> 
+            dplyr::filter(year>2016)
+          )
+
+dfn <- broom::augment(mod)
+
+ggplot2::ggplot(dfn, ggplot2::aes(x = .fitted, y = .resid)) + 
+  ggplot2::geom_point()+
+  ggplot2::geom_smooth(method = 'lm')+
+  ggplot2::theme_bw()+
+  ggplot2::ggtitle(expression('ECO'[2]~' vs year'))
+
+ggplot2::ggsave('img/eco2_residual.png',units="in", width=5, height=4,
+                dpi=1000)
+pv_eco2 <- summary(mod)$coefficients[2,4]
 co2e |> 
   dplyr::mutate(year=ano) |> 
   ggplot2::ggplot(ggplot2::aes(x=year,y=Total/1000000))+
@@ -634,7 +869,9 @@ co2e |>
                                   dplyr::filter(year>2016),
                                 ggplot2::aes(
                                   label =  paste(..eq.label.., 
-                                                 ..rr.label.., sep = "*plain(\",\")~~")))+
+                                                 ..rr.label..,
+                                                 signif(pv_eco2,3),
+                                                 sep = "*plain(\",\")~~")))+
   ggplot2::theme_bw()+
   ggplot2::labs(x='',
                 y=expression('ECO'[2]~' (t \u00D7 10'^6~')'))
@@ -656,7 +893,22 @@ a <- xco2 |>
     pf = FP/1e6,
     sf = FS/1e6,
     t = Total/1e6)
-summary(lm(xco2_reg ~ t, data=a)) 
+
+
+mod <- lm(xco2_reg ~ t, data=a)
+
+
+dfn <- broom::augment(mod)
+
+ggplot2::ggplot(dfn, ggplot2::aes(x = .fitted, y = .resid)) + 
+  ggplot2::geom_point()+
+  ggplot2::geom_smooth(method = 'lm')+
+  ggplot2::theme_bw()+
+  ggplot2::ggtitle(expression('XCO'[2][R]~' vs ECO'[2]))
+
+ggplot2::ggsave('img/eco2_vs_xco2_residual.png',units="in", width=5, height=4,
+                dpi=1000)
+pv_xco_eco <- summary(mod)$coefficients[2,4]
 
 xco2 |> 
   dplyr::mutate(
@@ -680,7 +932,9 @@ xco2 |>
   ggpubr::stat_regline_equation(
     ggplot2::aes(
       label =  paste(..eq.label.., 
-                     ..rr.label.., sep = "*plain(\",\")~~"))
+                     ..rr.label..,
+                     signif(pv_xco_eco,3),
+                     sep = "*plain(\",\")~~"))
   ) +
   ggplot2::theme_bw()+
   ggplot2::xlab('ECO'[2]~' (t \u00D7 10'^6~')')+
